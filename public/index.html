@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sniper Bot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0f2231;
+  --teal:#1a7f6e;
+  --teal-mid:#2a9d8a;
+  --teal-lt:#e8f4f2;
+  --teal-dk:#0d6b5c;
+
+  --ink-90:rgba(15,34,49,.9);
+  --ink-60:rgba(15,34,49,.6);
+  --ink-35:rgba(15,34,49,.35);
+  --ink-15:rgba(15,34,49,.15);
+  --ink-07:rgba(15,34,49,.07);
+  --ink-04:rgba(15,34,49,.04);
+
+  --teal-10:rgba(26,127,110,.10);
+  --teal-20:rgba(26,127,110,.20);
+  --teal-30:rgba(26,127,110,.30);
+
+  --page:#f0f2f4;
+  --card:#ffffff;
+  --sb-w:228px;
+  --r:9px;--rs:5px;
+  --sh:0 1px 3px var(--ink-07),0 1px 2px var(--ink-04);
+  --fm:'DM Sans',sans-serif;
+  --fmono:'DM Mono',monospace;
+}
+html,body{height:100%;font-family:var(--fm);font-size:14px;color:var(--ink);background:var(--page);overflow:hidden}
+.layout{display:flex;height:100vh}
+
+/* ── SIDEBAR ── */
+.sb{width:var(--sb-w);flex-shrink:0;background:var(--ink);display:flex;flex-direction:column;overflow-y:auto}
+.sb::-webkit-scrollbar{width:0}
+.sb-brand{padding:20px 16px 15px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-mark{width:32px;height:32px;border-radius:8px;background:var(--teal-mid);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-mark svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sb-name{font-size:15px;font-weight:600;color:#fff;letter-spacing:-.01em}
+.sb-sub{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.05em;text-transform:uppercase;margin-top:1px}
+.sb-sec{padding:16px 14px 4px;font-size:10px;font-weight:600;color:rgba(255,255,255,.22);letter-spacing:.1em;text-transform:uppercase}
+.sb-a{display:flex;align-items:center;gap:9px;padding:9px 13px;margin:1px 7px;border-radius:var(--rs);color:rgba(255,255,255,.45);cursor:pointer;transition:background .13s,color .13s;font-size:13px;user-select:none}
+.sb-a svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.8}
+.sb-a:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.75)}
+.sb-a.on{background:var(--teal);color:#fff;font-weight:500}
+.sb-a.on svg{opacity:1}
+.sb-div{height:1px;background:rgba(255,255,255,.06);margin:5px 11px}
+.sb-foot{margin-top:auto;padding:10px 7px 14px;border-top:1px solid rgba(255,255,255,.06)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:56px;flex-shrink:0;background:var(--card);border-bottom:1px solid var(--ink-15);display:flex;align-items:center;padding:0 24px;gap:12px}
+.tb-title{font-size:16px;font-weight:600;color:var(--ink)}
+.tb-sub{font-size:12px;color:var(--ink-35);margin-top:1px}
+.tb-sp{flex:1}
+.tb-time{font-size:11px;color:var(--ink-35);font-family:var(--fmono)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:999px;font-size:12px;font-weight:500}
+.chip-on{background:var(--teal-lt);color:var(--teal);border:1px solid var(--teal-20)}
+.chip-off{background:rgba(15,34,49,.06);color:var(--ink-60);border:1px solid var(--ink-15)}
+.chip-pause{background:rgba(15,34,49,.06);color:var(--ink-60);border:1px solid var(--ink-15);display:none}
+.chip-pause.show{display:inline-flex}
+.s-dot{width:6px;height:6px;border-radius:50%;background:currentColor;animation:blink 2.4s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── CONTENT PAGES ── */
+.page{display:none;flex:1;overflow-y:auto;padding:22px 24px;flex-direction:column;gap:18px}
+.page.active{display:flex}
+.page::-webkit-scrollbar{width:5px}
+.page::-webkit-scrollbar-thumb{background:var(--ink-15);border-radius:4px}
+
+/* ── STAT CARDS ── */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.sc{background:var(--card);border:1px solid var(--ink-15);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:14px}
+.sc-icon{width:40px;height:40px;border-radius:9px;background:var(--teal-10);display:flex;align-items:center;justify-content:center}
+.sc-icon svg{width:19px;height:19px;stroke:var(--teal);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sc-val{font-size:26px;font-weight:600;color:var(--ink);letter-spacing:-.025em;line-height:1}
+.sc-val.pos{color:var(--teal)}
+.sc-val.neg{color:var(--ink-60)}
+.sc-lbl{font-size:13px;color:var(--ink-35);margin-top:3px}
+
+/* ── ACTION BAR ── */
+.abar{background:var(--card);border:1px solid var(--ink-15);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:8px;box-shadow:var(--sh);flex-wrap:wrap}
+.a-lbl{font-size:11px;color:var(--ink-35);font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-right:2px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--rs);font-family:var(--fm);font-size:13px;font-weight:500;cursor:pointer;transition:all .13s;border:1px solid var(--ink-15);background:var(--card);color:var(--ink-60)}
+.btn svg{width:13px;height:13px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn:hover{background:var(--page);border-color:var(--ink-35);color:var(--ink)}
+.btn-teal{background:var(--teal);color:#fff;border-color:var(--teal)}
+.btn-teal:hover{background:var(--teal-dk);border-color:var(--teal-dk);color:#fff}
+.btn-teal-out{background:var(--card);color:var(--teal);border-color:var(--teal-30)}
+.btn-teal-out:hover{background:var(--teal-lt);color:var(--teal-dk)}
+.btn.paused{background:var(--teal-lt);color:var(--teal);border-color:var(--teal-20)}
+.a-div{width:1px;height:22px;background:var(--ink-15);margin:0 2px}
+.a-sp{flex:1}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--ink-15);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.card-h{padding:14px 18px;border-bottom:1px solid var(--ink-07);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-title{font-size:14px;font-weight:600;color:var(--ink)}
+.card-badge{background:var(--teal-lt);color:var(--teal);font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid var(--teal-20)}
+.card-sub{font-size:12px;color:var(--ink-35)}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse}
+thead th{padding:9px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--ink-35);letter-spacing:.07em;text-transform:uppercase;background:#fafbfc;border-bottom:1px solid var(--ink-07)}
+tbody tr{border-bottom:1px solid rgba(15,34,49,.04);transition:background .11s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#fafbfc}
+td{padding:11px 16px;font-size:13px;vertical-align:middle}
+.mc{display:flex;align-items:center;gap:9px}
+.av{width:30px;height:30px;border-radius:7px;background:var(--teal-10);border:1px solid var(--teal-20);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--teal);flex-shrink:0;font-family:var(--fmono)}
+.addr{font-size:11px;color:var(--ink-35);font-family:var(--fmono);margin-top:1px}
+.dex-tag{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;background:var(--teal-10);color:var(--teal);border:1px solid var(--teal-20)}
+.num-pos{color:var(--teal);font-weight:600;font-family:var(--fmono);font-size:12px}
+.num-neg{color:var(--ink-60);font-weight:600;font-family:var(--fmono);font-size:12px}
+.num-neu{color:var(--ink-35);font-family:var(--fmono);font-size:12px}
+.tp-row{display:flex;gap:3px;align-items:center}
+.tpd{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--ink-15);background:var(--card)}
+.tpd.hit{background:var(--teal);border-color:var(--teal)}
+.sell-b{padding:5px 11px;border-radius:4px;border:1px solid var(--ink-15);background:var(--card);color:var(--ink-60);font-family:var(--fm);font-size:12px;font-weight:500;cursor:pointer;transition:all .13s}
+.sell-b:hover{border-color:var(--ink-35);color:var(--ink)}
+
+.empty{padding:44px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ei{width:38px;height:38px;border-radius:9px;background:var(--page);border:1px solid var(--ink-15);display:flex;align-items:center;justify-content:center;margin-bottom:2px}
+.ei svg{width:17px;height:17px;stroke:var(--ink-35);fill:none;stroke-width:1.8;stroke-linecap:round}
+.et{font-size:14px;font-weight:500;color:var(--ink-60)}
+.es{font-size:12px;color:var(--ink-35)}
+
+/* ── TWO COL ── */
+.two-col{display:grid;grid-template-columns:1fr 300px;gap:16px}
+
+/* ── HISTORY ── */
+.hi{padding:12px 16px;border-bottom:1px solid var(--ink-07);display:flex;align-items:center;gap:10px}
+.hi:last-child{border-bottom:none}
+.hi-ic{width:28px;height:28px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--teal-10);border:1px solid var(--teal-20)}
+.hi-ic.neg{background:rgba(15,34,49,.05);border-color:var(--ink-15)}
+.hi-ic svg{width:13px;height:13px;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.hi-ic svg{stroke:var(--teal)}
+.hi-ic.neg svg{stroke:var(--ink-35)}
+.hi-meta{flex:1;min-width:0}
+.hi-mint{font-size:12px;font-family:var(--fmono);color:var(--ink-60)}
+.hi-rsn{font-size:11px;color:var(--ink-35);margin-top:2px;text-transform:capitalize}
+.hi-pnl{font-family:var(--fmono);font-size:13px;font-weight:500}
+.hi-pnl.pos{color:var(--teal)}
+.hi-pnl.neg{color:var(--ink-60)}
+
+/* ── LOG ── */
+.li{padding:9px 16px;border-bottom:1px solid var(--ink-07);display:flex;align-items:flex-start;gap:9px}
+.li:last-child{border-bottom:none}
+.ld{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px;background:var(--ink-15)}
+.ld.buy{background:var(--teal)}
+.ld.sell{background:var(--ink-35)}
+.ld.tp{background:var(--teal-mid)}
+.lt{font-size:12.5px;color:var(--ink);line-height:1.4}
+.lts{font-size:11px;color:var(--ink-35);font-family:var(--fmono);margin-top:1px}
+
+/* ── POSITIONS PAGE FULL TABLE ── */
+.pos-filters{display:flex;gap:8px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--ink-07);flex-wrap:wrap}
+.filter-btn{padding:5px 13px;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--ink-15);background:var(--card);color:var(--ink-60);transition:all .13s}
+.filter-btn:hover{border-color:var(--ink-35)}
+.filter-btn.on{background:var(--teal-lt);color:var(--teal);border-color:var(--teal-30)}
+.search-box{margin-left:auto;padding:5px 12px;border-radius:var(--rs);border:1px solid var(--ink-15);font-family:var(--fm);font-size:12px;color:var(--ink);background:var(--page);outline:none;width:180px}
+.search-box:focus{border-color:var(--teal-30);background:var(--card)}
+
+/* ── CONFIG PAGE ── */
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cfg-card{background:var(--card);border:1px solid var(--ink-15);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.cfg-head{padding:13px 18px;border-bottom:1px solid var(--ink-07);font-size:13px;font-weight:600;color:var(--ink)}
+.cfg-row{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--ink-07)}
+.cfg-row:last-child{border-bottom:none}
+.cfg-key{font-size:13px;color:var(--ink-60)}
+.cfg-val{font-family:var(--fmono);font-size:12px;font-weight:500;color:var(--ink)}
+.cfg-val.on{color:var(--teal);background:var(--teal-lt);padding:2px 9px;border-radius:4px;border:1px solid var(--teal-20)}
+.cfg-val.off{color:var(--ink-35);background:var(--page);padding:2px 9px;border-radius:4px;border:1px solid var(--ink-15)}
+.cfg-input{font-family:var(--fmono);font-size:12px;padding:4px 9px;border-radius:4px;border:1px solid var(--ink-15);background:var(--page);color:var(--ink);width:100px;text-align:right;outline:none}
+.cfg-input:focus{border-color:var(--teal-30);background:var(--card)}
+.cfg-save{margin-top:16px;display:flex;justify-content:flex-end}
+
+/* ── FILTERS PAGE ── */
+.filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ftog{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--ink-07)}
+.ftog:last-child{border-bottom:none}
+.ftog-info .ftog-name{font-size:13px;font-weight:500;color:var(--ink)}
+.ftog-info .ftog-desc{font-size:11px;color:var(--ink-35);margin-top:2px}
+.toggle{width:38px;height:21px;border-radius:999px;background:var(--ink-15);border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--teal)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:15px;height:15px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.toggle.on::after{transform:translateX(17px)}
+
+/* ── LOGS PAGE ── */
+.logs-toolbar{padding:12px 18px;border-bottom:1px solid var(--ink-07);display:flex;align-items:center;gap:8px}
+.log-filter{padding:4px 12px;border-radius:999px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--ink-15);background:var(--card);color:var(--ink-60);transition:all .13s}
+.log-filter:hover{border-color:var(--ink-35)}
+.log-filter.on{background:var(--teal-lt);color:var(--teal);border-color:var(--teal-30)}
+.log-full{padding:0;max-height:none}
+.li-full{padding:10px 18px;border-bottom:1px solid var(--ink-07);display:flex;align-items:flex-start;gap:10px}
+.li-full:last-child{border-bottom:none}
+.li-full .ld{margin-top:6px}
+.li-full .lt{font-size:13px}
+.li-full .lts{font-size:11.5px}
+
+/* ── WALLET PAGE ── */
+.wallet-hero{background:var(--card);border:1px solid var(--ink-15);border-radius:var(--r);padding:28px 24px;box-shadow:var(--sh);display:flex;align-items:center;gap:20px}
+.wallet-icon-wrap{width:56px;height:56px;border-radius:14px;background:var(--teal-10);border:1px solid var(--teal-20);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wallet-icon-wrap svg{width:26px;height:26px;stroke:var(--teal);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.wallet-addr-label{font-size:11px;color:var(--ink-35);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:5px}
+.wallet-addr{font-family:var(--fmono);font-size:14px;color:var(--ink);word-break:break-all}
+.wallet-copy{margin-top:6px;padding:4px 11px;border-radius:4px;border:1px solid var(--ink-15);background:var(--page);color:var(--ink-60);font-size:12px;cursor:pointer;font-family:var(--fm);transition:all .13s}
+.wallet-copy:hover{border-color:var(--ink-35);color:var(--ink)}
+.bal-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bal-card{background:var(--card);border:1px solid var(--ink-15);border-radius:var(--r);padding:20px;box-shadow:var(--sh)}
+.bal-label{font-size:11px;color:var(--ink-35);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:10px}
+.bal-val{font-size:28px;font-weight:600;color:var(--ink);letter-spacing:-.025em}
+.bal-usd{font-size:13px;color:var(--ink-35);margin-top:4px}
+.session-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.sess-card{background:var(--card);border:1px solid var(--ink-15);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh)}
+.sess-label{font-size:11px;color:var(--ink-35);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:8px}
+.sess-val{font-size:20px;font-weight:600;color:var(--ink);letter-spacing:-.02em}
+.sess-val.pos{color:var(--teal)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--ink-15);border-radius:4px}
+
+.tier {
+  width: 100%;
+    height: 3vh;
+    background: #f9d6d6;
+    box-shadow: inset 0px 0px 5px #ff8f8f;
+    padding: 2px;
+
+    animation: pulse-shadow 2s infinite;
+}
+
+@keyframes pulse-shadow {
+  0% {
+    /* Start with a small, semi-opaque shadow */
+    box-shadow: inset 0px 0px 5px #ff8f8f;
+  }
+  70% {
+    /* Expand the shadow while keeping it visible */
+    box-shadow: inset 0px 0px 5px #ff0000;
+  }
+  100% {
+    /* Fade it out completely at the end of the loop */
+    box-shadow: inset 0px 0px 5px #ff8f8f;
+  }
+}
+
+.tooltip-box {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px); /* Centers it and shifts it down slightly for the fade-in effect */
+  background: #f9d6d6;
+  box-shadow: inset 0px 0px 5px #ff8f8f;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  white-space: nowrap;
+  
+  /* Hide by default */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  z-index: 10;
+}
+
+/* Active class applied via JavaScript */
+.tooltip-box.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0); /* Smoothly slides up into place */
+  
+}
+
+.tooltip-container .toggle {
+  background: rgb(193 0 0 / 38%);
+}
+
+.cfg-input.premium-only {
+  background: rgb(193 0 0 / 25%);
+}
+
+.cfg-val.off.premium-only {
+  background: rgb(193 0 0 / 25%);
+}
+
+
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ══ SIDEBAR ══ -->
+<nav class="sb">
+  <div class="sb-brand">
+    <div class="sb-mark">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>
+    </div>
+    <div><div class="sb-name">Sniper Bot</div><div class="sb-sub">PumpFun · Raydium</div></div>
+  </div>
+
+  <div class="sb-sec">Main</div>
+  <div class="sb-a on" onclick="nav('dashboard',this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </div>
+  <div class="sb-a" onclick="nav('positions',this)">
+    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    Positions
+  </div>
+  <div class="sb-a" onclick="nav('history',this)">
+    <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+    Trade History
+  </div>
+  <div class="sb-a" onclick="nav('logs',this)">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Logs
+  </div>
+
+  <div class="sb-sec">Settings</div>
+  <div class="sb-a" onclick="nav('config',this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    Bot Config
+  </div>
+  <div class="sb-a" onclick="nav('filters',this)">
+    <svg viewBox="0 0 24 24"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+    Filters
+  </div>
+
+  <div class="sb-div"></div>
+
+  <div class="sb-a" onclick="nav('wallet',this)">
+    <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1" fill="currentColor"/></svg>
+    Wallet
+  </div>
+  <div class="sb-a" style="color:rgba(255,255,255,.25)" onclick="disconnect()">
+    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Disconnect
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="tb-title" id="tbTitle">Dashboard</div>
+      <div class="tb-sub" id="tbSub">Overview of all activity</div>
+    </div>
+    <div class="tb-sp"></div>
+    <div class="chip chip-pause" id="pausedChip">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      Bot paused
+    </div>
+    <div class="chip chip-on" id="statusChip">
+      <div class="s-dot"></div>
+      <span id="statusTxt">Connected</span>
+    </div>
+    <div class="tb-time" id="tbTime"></div>
+  </div>
+  
+  <div class="tier" id="tier">
+        <h1 style="text-align: center; font-size: 1.5em; margin-top: 2px;">You are currently running a FREE VERSION - To unlock full functionality consider buying PREMIUM VERSION</h1>
+  </div>
+  <div class="tooltip-box">Available only on Premium Version</div>
+
+  <!-- ══ PAGE: DASHBOARD ══ -->
+  <div class="page active" id="page-dashboard">
+    <div class="stat-row">
+      <div class="sc">
+        <div class="sc-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <div><div class="sc-val" id="sPos">0</div><div class="sc-lbl">Open positions</div></div>
+      </div>
+      <div class="sc">
+        <div class="sc-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div><div class="sc-val" id="sPnl">+0.000000</div><div class="sc-lbl">Total P/L (SOL)</div></div>
+      </div>
+      <div class="sc">
+        <div class="sc-icon"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+        <div><div class="sc-val pos" id="sWins">0</div><div class="sc-lbl" id="sWinRate">Win rate —</div></div>
+      </div>
+      <div class="sc">
+        <div class="sc-icon"><svg viewBox="0 0 24 24"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg></div>
+        <div><div class="sc-val" id="sLoss">0</div><div class="sc-lbl">Losses</div></div>
+      </div>
+    </div>
+
+    <div class="abar">
+      <span class="a-lbl">Actions</span>
+      <button class="btn" id="btnPause" onclick="togglePause(this)">
+        <svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        Pause bot
+      </button>
+      <button class="btn btn-teal-out" onclick="doAction('sell_all',this,'Sell all')">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Sell all
+      </button>
+      <button class="btn btn-teal-out" onclick="doAction('sell_half',this,'Sell 50%')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h10"/></svg>
+        Sell 50%
+      </button>
+      <div class="a-div"></div>
+      <div class="a-sp"></div>
+      <button class="btn" onclick="nav('config',document.querySelector(\'[onclick*=config]\'))">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        Advanced config
+      </button>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-h">
+          <span class="card-title">Open positions</span>
+          <span class="card-badge" id="posCount">0</span>
+        </div>
+        <table>
+          <thead><tr><th>Token</th><th>DEX</th><th>Buy price</th><th>P/L</th><th>Remaining</th><th>TP</th><th>Age</th><th></th></tr></thead>
+          <tbody id="posBody"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-h"><span class="card-title">Recent trades</span><span class="card-badge" id="histCount">0</span></div>
+          <div id="histList"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="card-title">Live log</span></div>
+          <div id="logShort"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: POSITIONS ══ -->
+  <div class="page" id="page-positions">
+    <div class="card">
+      <div class="pos-filters">
+        <button class="filter-btn on" onclick="filterPos('all',this)">All</button>
+        <button class="filter-btn" onclick="filterPos('pumpfun',this)">PumpFun</button>
+        <button class="filter-btn" onclick="filterPos('raydium',this)">Raydium</button>
+        <button class="filter-btn" onclick="filterPos('profit',this)">In profit</button>
+        <button class="filter-btn" onclick="filterPos('loss',this)">In loss</button>
+        <input class="search-box" placeholder="Search token address…" oninput="searchPos(this.value)">
+      </div>
+      <table>
+        <thead><tr><th>Token</th><th>DEX</th><th>Buy price</th><th>Current price</th><th>P/L</th><th>Remaining</th><th>TP levels</th><th>Trail</th><th>Age</th><th></th></tr></thead>
+        <tbody id="posBodyFull"></tbody>
+      </table>
+    </div>
+    <div class="abar">
+      <span class="a-lbl">Bulk actions</span>
+      <button class="btn btn-teal-out" onclick="doAction('sell_all',this,'Sell all')">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+        Sell all positions
+      </button>
+      <button class="btn btn-teal-out" onclick="doAction('sell_half',this,'Sell 50%')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h10"/></svg>
+        Sell 50% each
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: TRADE HISTORY ══ -->
+  <div class="page" id="page-history">
+    <div class="stat-row" style="grid-template-columns:repeat(3,1fr)">
+      <div class="sc">
+        <div class="sc-icon"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+        <div><div class="sc-val pos" id="hWins">0</div><div class="sc-lbl">Winning trades</div></div>
+      </div>
+      <div class="sc">
+        <div class="sc-icon"><svg viewBox="0 0 24 24"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg></div>
+        <div><div class="sc-val" id="hLoss">0</div><div class="sc-lbl">Losing trades</div></div>
+      </div>
+      <div class="sc">
+        <div class="sc-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div><div class="sc-val pos" id="hTotal">+0.000000</div><div class="sc-lbl">Session P/L (SOL)</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span class="card-title">All trades</span><span class="card-badge" id="histFullCount">0</span></div>
+      <table>
+        <thead><tr><th>Token</th><th>DEX</th><th>Close reason</th><th>P/L %</th><th>P/L SOL</th><th>Time</th></tr></thead>
+        <tbody id="histFull"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: LOGS ══ -->
+  <div class="page" id="page-logs">
+    <div class="card" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+      <div class="logs-toolbar">
+        <button class="log-filter on" onclick="filterLog('all',this)">All</button>
+        <button class="log-filter" onclick="filterLog('buy',this)">Buys</button>
+        <button class="log-filter" onclick="filterLog('sell',this)">Sells</button>
+        <button class="log-filter" onclick="filterLog('tp',this)">Take profit</button>
+        <button class="log-filter" onclick="filterLog('info',this)">Info</button>
+        <div style="flex:1"></div>
+        <button class="btn" onclick="clearLogs()">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+          Clear
+        </button>
+      </div>
+      <div id="logFull" style="overflow-y:auto;flex:1"></div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: BOT CONFIG ══ -->
+  <div class="page" id="page-config">
+    <div class="cfg-grid">
+      <div class="cfg-card">
+        <div class="cfg-head">Trading</div>
+        <div class="cfg-row"><span class="cfg-key">Buy amount (SOL)</span><input class="cfg-input" id="cfg-buy" value="0.01"></div>
+        <div class="cfg-row"><span class="cfg-key">Slippage</span><input class="cfg-input" id="cfg-slip" value="0.05"></div>
+        <div class="cfg-row"><span class="cfg-key">Priority fee (CU)</span><input class="cfg-input" id="cfg-cu" value="400000"></div>
+        <div class="cfg-row"><span class="cfg-key">Priority micro-lamports</span><input class="cfg-input" id="cfg-ml" value="60000"></div>
+        <div class="cfg-row"><span class="cfg-key">Min dev buy (SOL)</span><input class="cfg-input" id="cfg-dev" value="3"></div>
+      </div>
+      <div class="cfg-card">
+        <div class="cfg-head">Auto-sell</div>
+        <div class="cfg-row"><span class="cfg-key">Auto-sell enabled</span><span class="cfg-val on">Enabled</span></div>
+        <div class="cfg-row"><span class="cfg-key">Lifetime (seconds)</span><input class="cfg-input" id="cfg-life" value="300"></div>
+        <div class="cfg-row"><span class="cfg-key">Price check interval (s)</span><input class="cfg-input" id="cfg-check" value="1"></div>
+        <div class="cfg-row"><span class="cfg-key">Stop loss %</span><input class="cfg-input" id="cfg-sl" value="20"></div>
+      </div>
+      <div class="cfg-card">
+        <div class="cfg-head">Take Profit Levels</div>
+        <div class="cfg-row"><span class="cfg-key">TP1 threshold %</span><input class="cfg-input" id="cfg-tp1" value="5"></div>
+        <div class="cfg-row" ><span class="cfg-key">TP1 sell %</span><input class="cfg-input premium-only" id="cfg-tp1pct" value="100" readonly onclick="toggleTooltip(event)"></div>
+        <div class="cfg-row"><span class="cfg-key">TP2 threshold %</span><input class="cfg-input premium-only" id="cfg-tp2" value="0" readonly onclick="toggleTooltip(event)"></div>
+        <div class="cfg-row"><span class="cfg-key">TP2 sell %</span><input class="cfg-input premium-only" id="cfg-tp2pct" value="0" readonly onclick="toggleTooltip(event)"></div>
+        <div class="cfg-row"><span class="cfg-key">TP3 threshold %</span><input class="cfg-input premium-only" id="cfg-tp3" value="0" readonly onclick="toggleTooltip(event)"></div>
+      </div>
+      <div class="cfg-card">
+        <div class="cfg-head">Trailing Stop</div>
+        <div class="cfg-row"><span class="cfg-key">Trailing stop</span><span class="cfg-val off premium-only" id="cfg-trail-status" readonly onclick="toggleTooltip(event)">Disabled</span></div>
+        <div class="cfg-row"><span class="cfg-key">Activation %</span><input class="cfg-input premium-only" id="cfg-tact" value="10" readonly onclick="toggleTooltip(event)"></div>
+        <div class="cfg-row"><span class="cfg-key">Distance %</span><input class="cfg-input premium-only" id="cfg-tdist" value="5" readonly onclick="toggleTooltip(event)"></div>
+        <div class="cfg-head" style="border-top:1px solid var(--ink-07);margin-top:0">Jito</div>
+        <div class="ftog">
+          <div class="ftog-info"><div class="ftog-name">Jito bundles</div><div class="ftog-desc">Route buys through Jito block engine</div></div>
+          <button class="toggle on" id="cfg-jito-toggle" readonly onclick="toggleTooltip(event)"></button>
+        </div>
+        <div class="cfg-row"><span class="cfg-key">Status</span><span class="cfg-val on" id="cfg-jito-status">Enabled</span></div>
+        <div class="cfg-row"><span class="cfg-key">Tip (lamports)</span><input class="cfg-input premium-only" id="cfg-tip" value="10000000" readonly onclick="toggleTooltip(event)"></div>
+        <div class="cfg-head" style="border-top:1px solid var(--ink-07);margin-top:0">Data Source</div>
+        <div class="ftog">
+          <div class="ftog-info"><div class="ftog-name">Use gRPC stream</div><div class="ftog-desc">Off = RPC logsSubscribe (slower, no gRPC needed)</div></div>
+          <button class="toggle on" id="cfg-grpc-toggle" onclick="toggleGrpc(this)"></button>
+        </div>
+        <div class="cfg-row"><span class="cfg-key">Source</span><span class="cfg-val on" id="cfg-grpc-status">gRPC</span></div>
+      </div>
+      <div class="cfg-card">
+        <div class="cfg-head">Mode</div>
+        <div class="cfg-row"><span class="cfg-key">PumpFun sniper</span><span class="cfg-val on">Enabled</span></div>
+        <div class="cfg-row"><span class="cfg-key">Raydium CPMM sniper</span><span class="cfg-val off premium-only" onclick="toggleTooltip(event)">Disabled</span></div>
+        <div class="cfg-row"><span class="cfg-key">One token at a time</span><span class="cfg-val off premium-only" onclick="toggleTooltip(event)">Disabled</span></div>
+        <div class="cfg-row"><span class="cfg-key">Manual snipe mode</span><span class="cfg-val off">Disabled</span></div>
+      </div>
+      <div class="cfg-card">
+        <div class="cfg-head">Pool Size Filter</div>
+        <div class="cfg-row"><span class="cfg-key">Min pool size (SOL)</span><input class="cfg-input" id="cfg-minpool" value="1"></div>
+        <div class="cfg-row"><span class="cfg-key">Max pool size (SOL)</span><input class="cfg-input" id="cfg-maxpool" value="500000000"></div>
+        <div class="cfg-row"><span class="cfg-key">Max creator hold %</span><input class="cfg-input" id="cfg-creator" value="30"></div>
+      </div>
+    </div>
+    <div class="cfg-save">
+      <button class="btn btn-teal" onclick="saveConfig()">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save config
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: FILTERS ══ -->
+  <div class="page" id="page-filters">
+    <div class="filter-grid">
+      <div class="cfg-card">
+        <div class="cfg-head">Safety Filters</div>
+        <div class="ftog tooltip-container">
+          <div class="ftog-info"><div class="ftog-name">Socials &amp; website</div><div class="ftog-desc">Reject tokens with no Twitter/Telegram/website</div></div>
+          <button class="toggle off" onclick="toggleTooltip(event)"></button>
+        </div>
+        <div class="ftog tooltip-container">
+          <div class="ftog-info"><div class="ftog-name">Immutability check</div><div class="ftog-desc">Reject tokens where mint authority still exists</div></div>
+          <button class="toggle off" onclick="toggleTooltip(event)"></button>
+
+        </div>
+        <div class="ftog tooltip-container">
+          <div class="ftog-info"><div class="ftog-name">Frozen check</div><div class="ftog-desc">Reject tokens where the token account is frozen</div></div>
+          <button class="toggle off" onclick="toggleTooltip(event)"></button>
+
+        </div>
+        <div class="ftog tooltip-container">
+          <div class="ftog-info"><div class="ftog-name">LP burned</div><div class="ftog-desc">Reject tokens where LP has not been burned</div></div>
+          <button class="toggle off" onclick="toggleTooltip(event)"></button>
+
+        </div>
+        <div class="ftog tooltip-container">
+          <div class="ftog-info"><div class="ftog-name">Renounced</div><div class="ftog-desc">Reject tokens where mint is not renounced</div></div>
+          <button class="toggle off" onclick="toggleTooltip(event)"></button>
+        </div>
+        <div class="ftog tooltip-container">
+          <div class="ftog-info"><div class="ftog-name">LP locked</div><div class="ftog-desc">Reject tokens where liquidity is not locked</div></div>
+          <button class="toggle off" onclick="toggleTooltip(event)"></button>
+        </div>
+      </div>
+      <div class="cfg-card">
+        <div class="cfg-head">Filter Status</div>
+        <div class="cfg-row"><span class="cfg-key">Active filters</span><span class="cfg-val on" id="filterActiveCount">6 / 6</span></div>
+        <div class="cfg-row"><span class="cfg-key">Tokens scanned today</span><span class="cfg-val" id="tokensScanned">0</span></div>
+        <div class="cfg-row"><span class="cfg-key">Tokens rejected</span><span class="cfg-val" id="tokensRejected">0</span></div>
+        <div class="cfg-row"><span class="cfg-key">Tokens passed</span><span class="cfg-val" id="tokensPassed">0</span></div>
+        <div class="cfg-head" style="border-top:1px solid var(--ink-07);margin-top:0">Recent Rejections</div>
+        <div id="rejectLog" style="max-height:200px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <div class="cfg-save">
+      <button class="btn btn-teal" onclick="saveFilters()">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save filters
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: WALLET ══ -->
+  <div class="page" id="page-wallet">
+    <div class="wallet-hero">
+      <div class="wallet-icon-wrap">
+        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="15" r="1" fill="var(--teal)"/></svg>
+      </div>
+      <div style="flex:1">
+        <div class="wallet-addr-label">Wallet address</div>
+        <div class="wallet-addr" id="walletAddr">—</div>
+        <button class="wallet-copy" onclick="copyAddr()">Copy address</button>
+      </div>
+    </div>
+    <div class="bal-row">
+      <div class="bal-card">
+        <div class="bal-label">SOL Balance</div>
+        <div class="bal-val" id="walletSol">—</div>
+        <div class="bal-usd" id="walletUsd">—</div>
+      </div>
+      <div class="bal-card">
+        <div class="bal-label">Session P/L</div>
+        <div class="bal-val pos" id="walletPnl">+0.000000 SOL</div>
+        <div class="bal-usd" id="walletPnlUsd">—</div>
+      </div>
+    </div>
+    <div class="session-grid">
+      <div class="sess-card">
+        <div class="sess-label">Total trades</div>
+        <div class="sess-val" id="wTrades">0</div>
+      </div>
+      <div class="sess-card">
+        <div class="sess-label">Win rate</div>
+        <div class="sess-val pos" id="wWinRate">—</div>
+      </div>
+      <div class="sess-card">
+        <div class="sess-label">Best trade</div>
+        <div class="sess-val pos" id="wBest">—</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+// ── state ──────────────────────────────────────────────────────────────────
+let ws=null, positions={}, history=[], wins=0, losses=0, paused=false;
+let logs=[], logFilter='all', posFilter='all', posSearch='';
+let tokensScanned=0, tokensRejected=0, tokensPassed=0;
+let rejectLog=[];
+let walletAddress='';
+let solBalance=0;
+const SOL_USD=148;
+
+function toggleTooltip(event) {
+  event.stopPropagation();
+  
+  const tooltip = document.querySelector('.tooltip-box');
+
+  document.querySelectorAll('.tooltip-box.is-visible').forEach(tooltip => {
+      tooltip.classList.remove('is-visible');
+      clearTimeout(tooltip.timeoutId);
+  });
+  
+    tooltip.classList.add('is-visible');
+    tooltip.timeoutId = setTimeout(() => {
+      tooltip.classList.remove('is-visible');
+    }, 3000);
+}
+
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.tooltip-box.is-visible').forEach(tooltip => {
+    tooltip.classList.remove('is-visible');
+  });
+
+
+});
+
+// ── navigation ─────────────────────────────────────────────────────────────
+const pageTitles={
+  dashboard:['Dashboard','Overview of all activity'],
+  positions:['Positions','All open token positions'],
+  history:['Trade History','Closed trades this session'],
+  logs:['Logs','Live event stream'],
+  config:['Bot Config','Adjust trading parameters'],
+  filters:['Filters','Token safety filter settings'],
+  wallet:['Wallet','Balance and session stats'],
+};
+function nav(id, el){
+  document.querySelectorAll('.sb-a').forEach(a=>a.classList.remove('on'));
+  if(el) el.classList.add('on');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const [title,sub]=pageTitles[id]||[id,''];
+  document.getElementById('tbTitle').textContent=title;
+  document.getElementById('tbSub').textContent=sub;
+  if(id==='positions') renderPosFull();
+  if(id==='history') renderHistFull();
+  if(id==='logs') renderLogFull();
+  if(id==='wallet') renderWallet();
+}
+
+// ── WebSocket ──────────────────────────────────────────────────────────────
+function connect(){
+  const proto=location.protocol==='https:'?'wss':'ws';
+  ws=new WebSocket(proto+'://'+location.host);
+  ws.onopen=()=>{setStatus(true);addLog('info','Connected to bot')};
+  ws.onclose=()=>{setStatus(false);addLog('info','Disconnected — retrying');setTimeout(connect,3000)};
+  ws.onerror=()=>setStatus(false);
+  ws.onmessage=e=>{try{handle(JSON.parse(e.data))}catch{}};
+}
+function send(o){if(ws?.readyState===1)ws.send(JSON.stringify(o))}
+
+function handle({event,data}){
+  if(event==='snapshot'){
+    positions={};
+    data.forEach(p=>positions[p.mint]={...p,pnlSol:0,pnlPct:0});
+    renderDash();
+  } else if(event==='position_opened'){
+    positions[data.mint]={...data,pnlSol:0,pnlPct:0};
+    addLog('buy','Position opened — '+sh(data.mint)+' ['+data.dexType+']');
+    tokensPassed++;renderDash();
+  } else if(event==='position_closed'){
+    const p=positions[data.mint];
+    if(p){
+      const w=(data.pnlPct??p.pnlPct??0)>0; w?wins++:losses++;
+      history.unshift({mint:data.mint,dex:p.dexType,reason:data.reason||'closed',pnlPct:data.pnlPct??p.pnlPct??0,pnlSol:p.pnlSol??0,ts:Date.now()});
+      delete positions[data.mint];
+    }
+    addLog('sell','Closed — '+sh(data.mint)+' ('+((data.reason||'closed').replace(/_/g,' '))+')');
+    renderDash();renderHistFull();updateStats();
+  } else if(event==='pnl_update'){
+    if(positions[data.mint]) Object.assign(positions[data.mint],{pnlSol:data.pnlSol,pnlPct:data.pnlPct,remaining:data.remaining,trailingStopActivated:data.trailingStopActivated});
+    renderDash();updateStats();
+  } else if(event==='partial_sell'){
+    if(positions[data.mint]) positions[data.mint]['level'+data.level+'Triggered']=true;
+    addLog('tp','TP'+data.level+' hit — '+sh(data.mint)+' at '+(data.pnlPct?.toFixed(1)||0)+'%');
+    renderDash();
+  } else if(event==='buy_submitted'){
+    addLog('buy','Buy ['+data.dex+'] via '+(data.method||'RPC').toUpperCase()+' — '+data.ms+'ms');
+    tokensScanned++;
+  } else if(event==='filter_reject'){
+    tokensRejected++;tokensScanned++;
+    rejectLog.unshift({mint:data.mint,reason:data.reason,ts:Date.now()});
+    if(rejectLog.length>50) rejectLog.pop();
+    renderFilterStatus();
+  } else if(event==='config_snapshot'){
+    applyConfigSnapshot(data);
+  }
+}
+
+// Apply a config snapshot pushed from the bot. This is what makes the Jito /
+// USE_GRPC indicators reflect the actual bot state instead of the hardcoded
+// HTML defaults.
+function applyConfigSnapshot(c){
+  if(!c) return;
+  const jitoOn = c.JITO_ENABLED===true || c.JITO_ENABLED==='true';
+  const grpcOn = c.USE_GRPC===undefined ? true : (c.USE_GRPC===true || c.USE_GRPC==='true');
+  const tStatus=document.getElementById('cfg-jito-status');
+  const tToggle=document.getElementById('cfg-jito-toggle');
+  if(tStatus){ tStatus.textContent=jitoOn?'Enabled':'Disabled'; tStatus.className='cfg-val '+(jitoOn?'on':'off'); }
+  if(tToggle){ tToggle.classList.toggle('on', jitoOn); }
+  const gStatus=document.getElementById('cfg-grpc-status');
+  const gToggle=document.getElementById('cfg-grpc-toggle');
+  if(gStatus){ gStatus.textContent=grpcOn?'gRPC':'RPC logs'; gStatus.className='cfg-val '+(grpcOn?'on':'off'); }
+  if(gToggle){ gToggle.classList.toggle('on', grpcOn); }
+  if(c.JITO_TIP_LAMPORTS!==undefined){ const tip=document.getElementById('cfg-tip'); if(tip) tip.value=c.JITO_TIP_LAMPORTS; }
+  if(c.BUY_SOL_AMOUNT!==undefined){ const v=document.getElementById('cfg-buy'); if(v) v.value=c.BUY_SOL_AMOUNT; }
+  if(c.SLIPPAGE!==undefined){ const v=document.getElementById('cfg-slip'); if(v) v.value=c.SLIPPAGE; }
+}
+
+function toggleJito(btn){
+  btn.classList.toggle('on');
+  const on=btn.classList.contains('on');
+  const st=document.getElementById('cfg-jito-status');
+  if(st){ st.textContent=on?'Enabled':'Disabled'; st.className='cfg-val '+(on?'on':'off'); }
+  send({action:'save_config',config:{JITO_ENABLED:on}});
+  addLog('info','Jito '+(on?'enabled':'disabled')+' — next buy uses '+(on?'Jito':'RPC'));
+}
+
+function toggleGrpc(btn){
+  btn.classList.toggle('on');
+  const on=btn.classList.contains('on');
+  const st=document.getElementById('cfg-grpc-status');
+  if(st){ st.textContent=on?'gRPC':'RPC logs'; st.className='cfg-val '+(on?'on':'off'); }
+  send({action:'save_config',config:{USE_GRPC:on}});
+  addLog('info','Source set to '+(on?'gRPC':'RPC logs')+' — restart the bot to apply');
+}
+
+// ── dashboard render ───────────────────────────────────────────────────────
+function renderDash(){
+  renderPosTable('posBody', Object.values(positions), false);
+  renderHistShort();
+  renderLogShort();
+  const c=Object.keys(positions).length;
+  document.getElementById('posCount').textContent=c;
+  document.getElementById('sPos').textContent=c;
+  if(document.getElementById('page-positions').classList.contains('active')) renderPosFull();
+}
+
+function renderPosTable(tbodyId, rows, full){
+  const tbody=document.getElementById(tbodyId);
+  if(!rows.length){
+    tbody.innerHTML='<tr><td colspan="'+(full?10:8)+'"><div class="empty"><div class="ei"><svg viewBox="0 0 24 24" stroke="var(--ink-35)" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="et">No open positions</div><div class="es">Monitoring the stream for new tokens</div></div></td></tr>';
+    return;
+  }
+  const now=Date.now();
+  tbody.innerHTML=rows.map(p=>{
+    const pnl=p.pnlPct??0, sol=p.pnlSol??0;
+    const pc=pnl>0?'num-pos':pnl<0?'num-neg':'num-neu', sign=pnl>=0?'+':'';
+    const age=Math.floor((now-(p.buyTimestamp||now))/1000);
+    const as=age<60?age+'s':Math.floor(age/60)+'m '+age%60+'s';
+    const ini=p.mint.substring(0,3).toUpperCase();
+    const dots=[p.level1Triggered,p.level2Triggered,p.level3Triggered].map(h=>'<div class="tpd'+(h?' hit':'')+'"></div>').join('');
+    const trail=p.trailingStopActivated?'<span style="font-size:10px;color:var(--teal);background:var(--teal-lt);padding:2px 7px;border-radius:4px;border:1px solid var(--teal-20)">Active</span>':'<span style="font-size:10px;color:var(--ink-35)">—</span>';
+    let cols='<td><div class="mc"><div class="av">'+ini+'</div><div><div style="font-weight:500;font-size:13px">'+sh(p.mint)+'</div><div class="addr">'+p.mint.substring(0,18)+'…</div></div></div></td>'+
+      '<td><span class="dex-tag">'+p.dexType+'</span></td>'+
+      '<td class="num-neu">'+(p.buyPrice||0).toExponential(3)+'</td>';
+    if(full) cols+='<td class="num-neu">'+(p.currentPrice||0).toExponential(3)+'</td>';
+    cols+='<td><span class="'+pc+'">'+sign+pnl.toFixed(2)+'%</span><br><span style="font-size:11px;color:var(--ink-35);font-family:var(--fmono)">'+sign+sol.toFixed(6)+'</span></td>'+
+      '<td style="font-family:var(--fmono);font-size:12px;color:var(--ink-60)">'+fmtBig(p.remaining||p.remainingTokenAmount)+'</td>'+
+      '<td><div class="tp-row">'+dots+'</div></td>';
+    if(full) cols+=('<td>'+trail+'</td>');
+    cols+='<td style="font-family:var(--fmono);font-size:11px;color:var(--ink-35)">'+as+'</td>'+
+      '<td><button class="sell-b" onclick="send({action:\'sell_percent\',mint:\''+p.mint+'\',percent:100})">Sell</button></td>';
+    return '<tr>'+cols+'</tr>';
+  }).join('');
+}
+
+// ── full positions page ────────────────────────────────────────────────────
+function renderPosFull(){
+  let rows=Object.values(positions);
+  if(posFilter==='pumpfun') rows=rows.filter(p=>p.dexType==='PumpFun');
+  else if(posFilter==='raydium') rows=rows.filter(p=>p.dexType!=='PumpFun');
+  else if(posFilter==='profit') rows=rows.filter(p=>(p.pnlPct||0)>0);
+  else if(posFilter==='loss') rows=rows.filter(p=>(p.pnlPct||0)<0);
+  if(posSearch) rows=rows.filter(p=>p.mint.toLowerCase().includes(posSearch.toLowerCase()));
+  renderPosTable('posBodyFull',rows,true);
+}
+function filterPos(f,el){
+  posFilter=f;
+  document.querySelectorAll('#page-positions .filter-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  renderPosFull();
+}
+function searchPos(v){ posSearch=v; renderPosFull(); }
+
+// ── history ────────────────────────────────────────────────────────────────
+function renderHistShort(){
+  const el=document.getElementById('histList');
+  document.getElementById('histCount').textContent=history.length;
+  if(!history.length){el.innerHTML='<div style="padding:20px 16px;text-align:center;font-size:12px;color:var(--ink-35)">No closed trades yet</div>';return}
+  const up='<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
+  const dn='<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  el.innerHTML=history.slice(0,8).map(t=>{
+    const w=t.pnlPct>0, s=t.pnlPct>=0?'+':'';
+    return '<div class="hi"><div class="hi-ic'+(w?'':' neg')+'">'+(w?up:dn)+'</div>'+
+      '<div class="hi-meta"><div class="hi-mint">'+sh(t.mint)+'</div><div class="hi-rsn">'+t.reason.replace(/_/g,' ')+'</div></div>'+
+      '<div class="hi-pnl '+(w?'pos':'neg')+'">'+s+t.pnlPct.toFixed(2)+'%</div></div>';
+  }).join('');
+}
+
+function renderHistFull(){
+  const tbody=document.getElementById('histFull');
+  document.getElementById('histFullCount').textContent=history.length;
+  document.getElementById('hWins').textContent=wins;
+  document.getElementById('hLoss').textContent=losses;
+  let tot=history.reduce((a,t)=>a+t.pnlSol,0);
+  const el=document.getElementById('hTotal');
+  el.textContent=(tot>=0?'+':'')+tot.toFixed(6);
+  el.className='sc-val'+(tot>0?' pos':'');
+  if(!history.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ei"><svg viewBox="0 0 24 24" stroke="var(--ink-35)" fill="none" stroke-width="1.8" stroke-linecap="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg></div><div class="et">No closed trades yet</div><div class="es">Trades will appear here after positions close</div></div></td></tr>';return}
+  tbody.innerHTML=history.map(t=>{
+    const w=t.pnlPct>0, s=t.pnlPct>=0?'+':'';
+    const ts=new Date(t.ts).toTimeString().substring(0,8);
+    return '<tr>'+
+      '<td><div class="mc"><div class="av">'+t.mint.substring(0,3).toUpperCase()+'</div><div><div style="font-weight:500">'+sh(t.mint)+'</div><div class="addr">'+t.mint.substring(0,18)+'…</div></div></div></td>'+
+      '<td><span class="dex-tag">'+t.dex+'</span></td>'+
+      '<td style="color:var(--ink-60);font-size:12px;text-transform:capitalize">'+t.reason.replace(/_/g,' ')+'</td>'+
+      '<td><span class="'+(w?'num-pos':'num-neg')+'">'+s+t.pnlPct.toFixed(2)+'%</span></td>'+
+      '<td><span class="'+(w?'num-pos':'num-neg')+'">'+s+t.pnlSol.toFixed(6)+'</span></td>'+
+      '<td style="font-family:var(--fmono);font-size:11px;color:var(--ink-35)">'+ts+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
+// ── logs ───────────────────────────────────────────────────────────────────
+function addLog(type,msg){
+  const t=new Date().toTimeString().substring(0,8);
+  logs.unshift({type,msg,t});
+  if(logs.length>200) logs.pop();
+  renderLogShort();
+  if(document.getElementById('page-logs').classList.contains('active')) renderLogFull();
+}
+function renderLogShort(){
+  document.getElementById('logShort').innerHTML=logs.slice(0,6).map(l=>
+    '<div class="li"><div class="ld '+l.type+'"></div><div><div class="lt">'+l.msg+'</div><div class="lts">'+l.t+'</div></div></div>'
+  ).join('');
+}
+function renderLogFull(){
+  const filtered=logFilter==='all'?logs:logs.filter(l=>l.type===logFilter);
+  document.getElementById('logFull').innerHTML=filtered.map(l=>
+    '<div class="li-full li"><div class="ld '+l.type+'"></div><div><div class="lt">'+l.msg+'</div><div class="lts">'+l.t+'</div></div></div>'
+  ).join('') || '<div style="padding:24px;text-align:center;font-size:13px;color:var(--ink-35)">No log entries for this filter</div>';
+}
+function filterLog(f,el){
+  logFilter=f;
+  document.querySelectorAll('.log-filter').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  renderLogFull();
+}
+function clearLogs(){ logs=[]; renderLogFull(); renderLogShort(); }
+
+// ── filters ────────────────────────────────────────────────────────────────
+function toggleFilter(btn){
+  btn.classList.toggle('on');
+  renderFilterStatus();
+}
+function renderFilterStatus(){
+  // Scope to the filters page so the Jito/gRPC toggles in the config page
+  // don't get counted as filters.
+  const active=document.querySelectorAll('#page-filters .toggle.on').length;
+  const total=document.querySelectorAll('#page-filters .toggle').length;
+  document.getElementById('filterActiveCount').textContent=active+' / '+total;
+  document.getElementById('filterActiveCount').className='cfg-val '+(active>0?'on':'off');
+  document.getElementById('tokensScanned').textContent=tokensScanned;
+  document.getElementById('tokensRejected').textContent=tokensRejected;
+  document.getElementById('tokensPassed').textContent=tokensPassed;
+  const rl=document.getElementById('rejectLog');
+  if(!rejectLog.length){rl.innerHTML='<div style="padding:12px 16px;font-size:12px;color:var(--ink-35)">No rejections yet</div>';return}
+  rl.innerHTML=rejectLog.slice(0,10).map(r=>'<div style="padding:9px 16px;border-bottom:1px solid var(--ink-07);font-size:12px"><div style="font-family:var(--fmono);color:var(--ink-60)">'+sh(r.mint)+'</div><div style="color:var(--ink-35);margin-top:2px">'+r.reason+'</div></div>').join('');
+}
+function saveFilters(){
+  send({action:'save_filters'});
+  addLog('info','Filter settings saved');
+  const btn=event.target;
+  const orig=btn.innerHTML;
+  btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg> Saved';
+  setTimeout(()=>btn.innerHTML=orig,1500);
+}
+
+// ── config save ────────────────────────────────────────────────────────────
+function saveConfig(){
+  const cfg={
+    BUY_SOL_AMOUNT: parseFloat(document.getElementById('cfg-buy').value)||0.01,
+    SLIPPAGE: parseFloat(document.getElementById('cfg-slip').value)||0.05,
+    PRIORITY_FEE_CU: parseInt(document.getElementById('cfg-cu').value)||400000,
+    PRIORITY_FEE_MICRO_LAMPORTS: parseInt(document.getElementById('cfg-ml').value)||60000,
+    MIN_DEV_BUY_AMOUNT: parseFloat(document.getElementById('cfg-dev').value)||3,
+    AUTO_SELL_LIFETIME_SECONDS: parseInt(document.getElementById('cfg-life').value)||300,
+    PRICE_CHECK_INTERVAL_SECONDS: parseInt(document.getElementById('cfg-check').value)||1,
+    STOP_LOSS_PERCENTAGE: parseFloat(document.getElementById('cfg-sl').value)||20,
+    TAKE_PROFIT_LEVEL_1: parseFloat(document.getElementById('cfg-tp1').value)||5,
+    PERCENTAGE_OF_TOKENS_TO_SELL_AT_LEVEL_1: parseFloat(document.getElementById('cfg-tp1pct').value)||50,
+    TAKE_PROFIT_LEVEL_2: parseFloat(document.getElementById('cfg-tp2').value)||10,
+    PERCENTAGE_OF_TOKENS_TO_SELL_AT_LEVEL_2: parseFloat(document.getElementById('cfg-tp2pct').value)||50,
+    TAKE_PROFIT_LEVEL_3: parseFloat(document.getElementById('cfg-tp3').value)||50,
+    TRAILING_STOP_ACTIVATION_PCT: parseFloat(document.getElementById('cfg-tact').value)||10,
+    TRAILING_STOP_DISTANCE_PCT: parseFloat(document.getElementById('cfg-tdist').value)||5,
+    JITO_ENABLED: document.getElementById('cfg-jito-toggle').classList.contains('on'),
+    JITO_TIP_LAMPORTS: Math.max(1000, parseInt(document.getElementById('cfg-tip').value)||10000),
+    USE_GRPC: document.getElementById('cfg-grpc-toggle').classList.contains('on'),
+    MINIMUM_POOL_SIZE_IN_SOL: parseFloat(document.getElementById('cfg-minpool').value)||1,
+    MAXIMUM_POOL_SIZE_IN_SOL: parseFloat(document.getElementById('cfg-maxpool').value)||500000000,
+    MAX_PERCENTAGE_BELONGING_TO_CREATOR: parseFloat(document.getElementById('cfg-creator').value)||30,
+  };
+  send({action:'save_config',config:cfg});
+  addLog('info','Config saved — restart bot to apply changes');
+  const btn=event.target;
+  const orig=btn.innerHTML;
+  btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg> Saved';
+  setTimeout(()=>btn.innerHTML=orig,1500);
+}
+
+// ── wallet ─────────────────────────────────────────────────────────────────
+function renderWallet(){
+  document.getElementById('walletAddr').textContent=walletAddress||'Not connected';
+  document.getElementById('walletSol').textContent=solBalance.toFixed(4)+' SOL';
+  document.getElementById('walletUsd').textContent='≈ $'+(solBalance*SOL_USD).toFixed(2)+' USD';
+  let tot=history.reduce((a,t)=>a+t.pnlSol,0);
+  Object.values(positions).forEach(p=>tot+=(p.pnlSol||0));
+  const pnlEl=document.getElementById('walletPnl');
+  pnlEl.textContent=(tot>=0?'+':'')+tot.toFixed(6)+' SOL';
+  pnlEl.className='bal-val'+(tot>0?' pos':'');
+  document.getElementById('walletPnlUsd').textContent='≈ $'+(Math.abs(tot)*SOL_USD).toFixed(2)+' USD';
+  document.getElementById('wTrades').textContent=wins+losses;
+  const wr=wins+losses>0?((wins/(wins+losses))*100).toFixed(0)+'%':'—';
+  document.getElementById('wWinRate').textContent=wr;
+  const best=history.reduce((a,t)=>t.pnlPct>a?t.pnlPct:a,0);
+  document.getElementById('wBest').textContent=best>0?'+'+best.toFixed(2)+'%':'—';
+}
+function copyAddr(){
+  if(walletAddress) navigator.clipboard.writeText(walletAddress);
+  const btn=event.target;
+  btn.textContent='Copied!';
+  setTimeout(()=>btn.textContent='Copy address',1500);
+}
+
+// ── stats ──────────────────────────────────────────────────────────────────
+function updateStats(){
+  let tot=0;
+  Object.values(positions).forEach(p=>tot+=(p.pnlSol||0));
+  history.forEach(t=>tot+=(t.pnlSol||0));
+  const el=document.getElementById('sPnl');
+  el.textContent=(tot>=0?'+':'')+tot.toFixed(6);
+  el.className='sc-val'+(tot>0?' pos':tot<0?' neg':'');
+  document.getElementById('sWins').textContent=wins;
+  document.getElementById('sLoss').textContent=losses;
+  const n=wins+losses;
+  document.getElementById('sWinRate').textContent=n>0?'Win rate '+((wins/n)*100).toFixed(0)+'%':'Win rate —';
+}
+
+// ── controls ───────────────────────────────────────────────────────────────
+function setStatus(ok){
+  const c=document.getElementById('statusChip');
+  c.className='chip '+(ok?'chip-on':'chip-off');
+  document.getElementById('statusTxt').textContent=ok?'Connected':'Disconnected';
+}
+function togglePause(btn){
+  paused=!paused;
+  document.getElementById('pausedChip').className='chip chip-pause'+(paused?' show':'');
+  if(paused){
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><polygon points="5 3 19 12 5 21 5 3"/></svg> Resume bot';
+    btn.classList.add('paused');
+  } else {
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause bot';
+    btn.classList.remove('paused');
+  }
+  addLog('info',paused?'Bot paused — no new snipes':'Bot resumed');
+}
+function doAction(action,btn,label){
+  send({action});
+  const orig=btn.innerHTML;
+  btn.textContent='Sent';btn.style.opacity='.6';btn.style.pointerEvents='none';
+  setTimeout(()=>{btn.innerHTML=orig;btn.style.opacity='';btn.style.pointerEvents=''},1400);
+  addLog('sell',label+' command sent');
+}
+function disconnect(){
+  if(confirm('Disconnect? All monitoring will stop.')){
+    send({action:'disconnect'});
+    addLog('info','Disconnecting…');
+  }
+}
+
+// ── clock ──────────────────────────────────────────────────────────────────
+setInterval(()=>{
+  const d=new Date();
+  document.getElementById('tbTime').textContent='Last updated: '+
+    d.toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+},1000);
+setInterval(()=>{
+  renderDash();
+  if(document.getElementById('page-positions').classList.contains('active')) renderPosFull();
+  if(document.getElementById('page-wallet').classList.contains('active')) renderWallet();
+},5000);
+
+// ── utils ──────────────────────────────────────────────────────────────────
+function sh(addr){return addr?addr.substring(0,4)+'…'+addr.slice(-4):'—'}
+function fmtBig(n){
+  if(!n) return '—';
+  try{
+    const v=BigInt(typeof n==='string'?n:Math.floor(Number(n)));
+    if(v>1000000000n) return (Number(v)/1e9).toFixed(1)+'B';
+    if(v>1000000n) return (Number(v)/1e6).toFixed(1)+'M';
+    if(v>1000n) return (Number(v)/1e3).toFixed(1)+'K';
+    return v.toString();
+  }catch{return String(n)}
+}
+
+// ── init ───────────────────────────────────────────────────────────────────
+renderHistShort();
+renderDash();
+renderFilterStatus();
+connect();
+addLog('info','Dashboard loaded');
+</script>
+</body>
+</html>
