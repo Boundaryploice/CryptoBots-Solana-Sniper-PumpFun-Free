@@ -1,6 +1,6 @@
 <div align="center">
   <h1>APEX Sniper</h1>
-  <h2>Pumpfun Gem/Auto Sniper</h2>
+  <h2>Pumpfun Gem/Auto Sniper / WORKS WITH FREE RPC (INCLUDED)</h2>
   <p>Free Trial from CryptoBots.tech team</p>
   
   
